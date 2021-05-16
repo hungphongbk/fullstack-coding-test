@@ -1,0 +1,36 @@
+version: "3.5"
+services:
+  postgres:
+    image: postgres:11
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+  backend:
+    hostname: backend
+    build: ./backend/
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=changeme
+      - NODE_EXTRA_CA_CERTS=./.cert/ca.crt
+      - CERT_PATH=/usr/app/etc/sslcert
+    restart: always
+    depends_on:
+      - postgres
+    stdin_open: true
+    tty: true
+    networks:
+      - postgres
+networks:
+  postgres:
+    driver: bridge
